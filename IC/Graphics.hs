@@ -62,8 +62,9 @@ display ls
           ((minX, minY), (maxX, maxY))  = computeScale vertices
 
       preservingMatrix $ do
-        ortho2D (realToFrac minX) (realToFrac maxX)
+        ortho (realToFrac minX) (realToFrac maxX)
           (realToFrac minY) (realToFrac maxY)
+          (0) (1)
 
         renderPrimitive Lines $ mapM_ lineVertices ls
 
