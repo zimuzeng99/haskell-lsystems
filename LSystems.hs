@@ -31,44 +31,75 @@ type ColouredLine
 
 -- |Returns the rotation angle for the given system.
 angle :: System -> Float
-angle = error "TODO: implement angle"
+angle (x, _, _) = x
 
 -- |Returns the base string for the given system.
 base :: System -> String
-base = error "TODO: implement base"
+base (_, y, _) = y
 
 -- |Returns the set of rules for the given system.
 rules :: System -> Rules
-rules = error "TODO: implement rules"
-
+rules (_, _, z) = z
 
 -- |Look up a character in the given set of rules.
 --
 --  Pre: the character exists in the set of rules.
 lookupChar :: Char -> Rules -> String
-lookupChar = error "TODO: implement lookupChar"
+lookupChar searchChar rules
+ | null results = "norule"
+ | otherwise = head results
+   where results = [y | (x,y) <- rules, x == searchChar]
 
 -- |Expand a command once using the given set of rules.
 expandOne :: Rules -> String -> String
-expandOne = error "TODO: implement expandOne"
+expandOne _ "" = ""
+expandOne rules (ch : chs)
+ | result == "norule" = ch : expandOne rules chs
+ | otherwise = result ++ expandOne rules chs
+   where result = lookupChar ch rules
 
 -- |Expand a command `n' times using the given set of rules.
 expand :: Rules -> String -> Int -> String
-expand = error "TODO: implement expand"
+expand rules baseStr@(ch : chs) n
+ | n == 0 = baseStr
+ | otherwise = expand rules (expandOne rules baseStr) (n - 1)
 
 -- |Move a turtle.
 --
 --  * 'F' moves distance 1 in the current direction.
 --  * 'L' rotates left according to the given angle.
 --  * 'R' rotates right according to the given angle.
+
+toRad :: Float -> Float
+toRad deg = deg / 180 * pi
+
 move :: Char -> TurtleState -> Float -> TurtleState
-move = error "TODO: implement move"
+move cmd state rotate
+ | cmd == 'F' = ((x + cos (toRad theta), y + sin (toRad theta)), theta)
+ | cmd == 'L' = (pos, theta + rotate)
+ | cmd == 'R' = (pos, theta - rotate)
+   where
+    (pos@(x, y), theta) = state
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 1
 trace1 :: String -> Float -> Colour -> [ColouredLine]
-trace1 = error "TODO: implement trace1"
+trace1 commands rotate colour
+ = fst (trace1' commands rotate colour ((0, 0), 90) [])
+
+trace1' :: String -> Float -> Colour -> TurtleState -> [ColouredLine] -> ([ColouredLine], String)
+trace1' commands rotate colour state traces
+ | null commands = (traces, "")
+ | cmd == 'F' = trace1' cmds rotate colour newState (line : traces)
+ | cmd == '[' = trace1' remaining rotate colour state (branch ++ traces)
+ | cmd == ']' = (traces, cmds)
+ | otherwise = trace1' cmds rotate colour newState traces
+   where
+    newState = move cmd state rotate
+    line = (fst state, fst newState, colour)
+    (cmd: cmds) = commands
+    (branch, remaining) = trace1' cmds rotate colour state []
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
