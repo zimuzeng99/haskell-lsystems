@@ -105,8 +105,20 @@ trace1' commands rotate colour state traces
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 2
 trace2 :: String -> Float -> Colour -> [ColouredLine]
-trace2 = error "TODO: implement trace2"
+trace2 commands rotate colour
+ = trace2' commands rotate colour ((0,0), 90) [] []
 
+trace2' :: String -> Float -> Colour -> TurtleState -> [TurtleState] -> [ColouredLine] -> [ColouredLine]
+trace2' commands rotate colour state turtleStack traces
+ | null commands = traces
+ | cmd == 'F' = trace2' cmds rotate colour newState turtleStack (line : traces)
+ | cmd == '[' = trace2' cmds rotate colour state (state:turtleStack) traces
+ | cmd == ']' = trace2' cmds rotate colour (head turtleStack) (tail turtleStack) traces
+ | otherwise = trace2' cmds rotate colour newState turtleStack traces
+   where
+    newState = move cmd state rotate
+    line = (fst state, fst newState, colour)
+    (cmd: cmds) = commands
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
